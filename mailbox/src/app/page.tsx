@@ -11,8 +11,14 @@ type Message = {
   snippet?: string;
 };
 
+type FullMessage = {
+  id: string;
+  subject?: string;
+  snippet?: string;
+  body?: string;
+};
+
 export default function Home() {
-  // Ajout pour le formulaire de notification
   const [showNotify, setShowNotify] = useState(false);
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -187,133 +193,98 @@ export default function Home() {
 
   const { data: session } = useSession();
   const [messages, setMessages] = useState<Message[]>([]);
+  const [selected, setSelected] = useState<FullMessage | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (session) {
-      setLoading(true);
       fetch("/api/server")
         .then((res) => res.json())
         .then((data) => {
           setMessages(data.messages || []);
-        })
-        .finally(() => setLoading(false));
+        });
     }
   }, [session]);
 
+  // Fonction pour charger le mail complet
+  const handleShowMail = async (id: string) => {
+    setLoading(true);
+    const res = await fetch(`/api/server?id=${id}`);
+    const data = await res.json();
+    setSelected(data.message);
+    setLoading(false);
+  };
+
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="min-h-screen bg-gradient-to-br from-indigo-100 via-white to-indigo-200 flex flex-col items-center justify-center p-4"
-    >
-      <main className="w-full max-w-xl mx-auto bg-white/80 rounded-xl shadow-lg p-8 mt-8">
-        <AnimatePresence>
-          {session ? (
+    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
+        {session ? (
+          <div>
+            <h2>Welcome {session.user?.name}</h2>
+            <button onClick={handleSignOut}>Sign Out</button>
+            <div className="flex flex-col gap-2 mt-4">
+              {messages.map((message) => (
+                <button
+                  key={message.id}
+                  className="border text-black p-4 my-2 rounded hover:bg-indigo-50 transition"
+                  onClick={() => handleShowMail(message.id)}
+                >
+                  <h3 className="font-semibold">{message.subject}</h3>
+                  <p className="text-gray-600">{message.snippet}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div>
+            <h2>Sign In using Google</h2>
+            <button onClick={handleSignIn}>Sign In</button>
+          </div>
+        )}
+      </main>
+
+      {/* Modale pour afficher le mail complet */}
+      <AnimatePresence>
+        {selected && (
+          <motion.div
+            className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelected(null)}
+          >
             <motion.div
-              key="signed-in"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -30 }}
-              transition={{ duration: 0.5 }}
+              className="bg-white rounded-xl shadow-xl p-8 max-w-lg w-full relative"
+              initial={{ scale: 0.9, y: 40 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 40 }}
+              onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between mb-6">
-                <motion.h2
-                  className="text-2xl font-bold text-indigo-700"
-                  initial={{ x: -20, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  Bienvenue, {session.user?.name}
-                </motion.h2>
-                <motion.button
-                  whileHover={{ scale: 1.08 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleSignOut}
-                  className="bg-indigo-500 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-600 transition"
-                >
-                  Se déconnecter
-                </motion.button>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold mb-4 text-indigo-600">
-                  Vos derniers mails :
-                </h3>
+              <button
+                className="absolute top-2 right-4 text-xl text-gray-400 hover:text-gray-700"
+                onClick={() => setSelected(null)}
+                aria-label="Fermer"
+              >
+                ×
+              </button>
+              <h3 className="text-xl font-bold mb-2">{selected.subject}</h3>
+              <p className="mb-4 text-gray-600">{selected.snippet}</p>
+              <div
+                className="prose max-w-none"
+                style={{ whiteSpace: "pre-wrap" }}
+              >
                 {loading ? (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-center text-gray-500"
-                  >
-                    Chargement...
-                  </motion.div>
+                  "Chargement..."
                 ) : (
-                  <div className="space-y-4">
-                    <AnimatePresence>
-                      {messages.length === 0 ? (
-                        <motion.div
-                          key="no-messages"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          className="text-gray-400 italic"
-                        >
-                          Aucun message trouvé.
-                        </motion.div>
-                      ) : (
-                        messages.map((message) => (
-                          <motion.div
-                            key={message.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            transition={{ duration: 0.3 }}
-                            className="border border-indigo-200 bg-white rounded-lg p-4 shadow hover:shadow-md transition"
-                          >
-                            <h4 className="font-semibold text-indigo-700">
-                              {message.subject}
-                            </h4>
-                            <p className="text-gray-600">{message.snippet}</p>
-                          </motion.div>
-                        ))
-                      )}
-                    </AnimatePresence>
-                  </div>
+                  selected.body || (
+                    <span className="italic text-gray-400">Aucun contenu</span>
+                  )
                 )}
               </div>
             </motion.div>
-          ) : (
-            <motion.div
-              key="signed-out"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -30 }}
-              transition={{ duration: 0.5 }}
-              className="flex flex-col items-center"
-            >
-              <motion.h2
-                className="text-2xl font-bold text-indigo-700 mb-4"
-                initial={{ scale: 0.9 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2 }}
-              >
-                Connecte-toi avec Google
-              </motion.h2>
-              <motion.button
-                whileHover={{ scale: 1.08 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleSignIn}
-                className="bg-indigo-500 text-white px-6 py-3 rounded-lg shadow hover:bg-indigo-600 transition text-lg"
-              >
-                Se connecter
-              </motion.button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </main>
-      <footer className="mt-10 text-gray-400 text-sm">
-        &copy; {new Date().getFullYear()} Mailbox. Tous droits réservés.
-      </footer>
-    </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

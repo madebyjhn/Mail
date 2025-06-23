@@ -4,10 +4,42 @@ import { authOptions } from "../auth/authOptions";
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  const accessToken = (session as any)?.accessToken;
+  const accessToken = (session as { accessToken?: string } | null)?.accessToken;
 
   if (!accessToken) {
     return NextResponse.json({ error: "No access token" }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
+
+  if (id) {
+    // Récupère le mail complet
+    const res = await fetch(
+      `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}?format=full`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+    const data = await res.json();
+    const subjectHeader = data.payload?.headers?.find(
+      (h: { name: string }) => h.name === "Subject"
+    );
+    // Décodage du body (base64)
+    let body = "";
+    if (data.payload?.parts?.[0]?.body?.data) {
+      body = Buffer.from(data.payload.parts[0].body.data, "base64").toString("utf-8");
+    } else if (data.payload?.body?.data) {
+      body = Buffer.from(data.payload.body.data, "base64").toString("utf-8");
+    }
+    return NextResponse.json({
+      message: {
+        id,
+        subject: subjectHeader?.value || "(Pas de sujet)",
+        snippet: data.snippet,
+        body,
+      },
+    });
   }
 
   // 1. Récupère la liste des messages (IDs)
