@@ -11,6 +11,26 @@ type Message = {
 };
 
 export default function Home() {
+  if (process.env.NODE_ENV === "production") {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#f3f4f6",
+        }}
+      >
+        <h1 style={{ fontSize: "2rem", marginBottom: "1rem" }}>
+          🚧 Site en construction 🚧
+        </h1>
+        <p>Revenez bientôt pour découvrir notre service&nbsp;!</p>
+      </div>
+    );
+  }
+
   const { data: session } = useSession();
   const [messages, setMessages] = useState<Message[]>([]);
 
