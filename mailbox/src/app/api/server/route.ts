@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/authOptions";
+import { log } from "console";
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -9,6 +10,8 @@ export async function GET(req: NextRequest) {
   if (!accessToken) {
     return NextResponse.json({ error: "No access token" }, { status: 401 });
   }
+
+  console.log(accessToken);
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
@@ -28,7 +31,9 @@ export async function GET(req: NextRequest) {
     // Décodage du body (base64)
     let body = "";
     if (data.payload?.parts?.[0]?.body?.data) {
-      body = Buffer.from(data.payload.parts[0].body.data, "base64").toString("utf-8");
+      body = Buffer.from(data.payload.parts[0].body.data, "base64").toString(
+        "utf-8"
+      );
     } else if (data.payload?.body?.data) {
       body = Buffer.from(data.payload.body.data, "base64").toString("utf-8");
     }
@@ -42,9 +47,11 @@ export async function GET(req: NextRequest) {
     });
   }
 
+  const maxResults = searchParams.get("maxResults") || "10";
+
   // 1. Récupère la liste des messages (IDs)
   const listRes = await fetch(
-    "https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=10",
+    `https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=${maxResults}`,
     {
       headers: {
         Authorization: `Bearer ${accessToken}`,
