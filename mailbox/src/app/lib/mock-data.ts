@@ -4,43 +4,31 @@ export const folders: Folder[] = [
   {
     id: "inbox",
     name: "Inbox",
-    icon: "inbox",
+    icon: "Inbox",
     count: 120,
   },
   {
     id: "sent",
     name: "Sent",
-    icon: "send",
+    icon: "Send",
     count: 45,
   },
   {
     id: "drafts",
     name: "Drafts",
-    icon: "file-text",
+    icon: "FileText",
     count: 10,
   },
   {
     id: "spam",
     name: "Spam",
-    icon: "alert-triangle",
+    icon: "AlertTriangle",
     count: 5,
   },
   {
     id: "trash",
     name: "Trash",
-    icon: "trash-2",
+    icon: "Trash2",
     count: 2,
-  },
-  {
-    id: "archive",
-    name: "Archive",
-    icon: "archive",
-    count: 32,
-  },
-  {
-    id: "important",
-    name: "Important",
-    icon: "star",
-    count: 15,
   },
 ];

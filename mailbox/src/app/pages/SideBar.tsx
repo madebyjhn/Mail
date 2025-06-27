@@ -11,6 +11,9 @@ import {
   Star,
   Edit,
 } from "lucide-react";
+import { useState } from "react";
+import Avatar from "../components/Avatar";
+import User from "../components/user";
 
 interface SideBarProps {
   selectedFolder: string;
@@ -33,8 +36,24 @@ export default function SideBar({
   onSelectFolder,
   onCompose,
 }: SideBarProps) {
+  const [isProfilOpen, setIsProfilOpen] = useState(false);
   return (
     <>
+      <motion.div
+        className="p-6"
+        initial={{ opacity: 0, x: -420 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.5, duration: 0.2, ease: "backIn" }}
+      >
+        <button className="neu-button rounded-2xl p-4 flex items-center space-x-3 w-full hover:neu-pressed rounded-xl p-2 transition-all duration-200">
+          <div className="neu-button rounded-full p-1">
+            <Avatar className="w-10 h-10 rounded-full" />
+          </div>
+          <div className="flex-1 text-left">
+            <User />
+          </div>
+        </button>
+      </motion.div>
       <motion.div className="px-6 mb-6">
         <Button
           className="w-full neu-button border-0 theme-accent-bg hover:opacity-90 text-white rounded-xl py-3 font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
@@ -47,11 +66,7 @@ export default function SideBar({
       </motion.div>
 
       <div className="flex-1 px-6 pb-6">
-        {" "}
-        {/* Conteneur flexible qui prend l'espace restant, padding horizontal et inférieur */}
         <nav className="space-y-2">
-          {" "}
-          {/* Navigation avec espacement vertical entre éléments */}
           {folders.map((folder, index) => {
             const IconComponent =
               iconMap[folder.icon as keyof typeof iconMap] || Inbox;
@@ -75,25 +90,22 @@ export default function SideBar({
                   }`}
                 >
                   <div className="flex items-center space-x-3">
-                    {" "}
-                    {/* Conteneur flex pour l'icône et le nom */}
                     <IconComponent
                       className={`w-5 h-5 ${
                         isSelected ? "theme-accent" : "theme-text-muted"
                       }`}
                     />
-                    <span>{folder.name}</span> {/* Nom du dossier */}
+                    <span>{folder.name}</span>
                   </div>
-                  {folder.count > 0 && ( // Affiche le compteur seulement s'il y a des éléments
+                  {folder.count > 0 && (
                     <span
                       className={`text-xs px-2 py-1 rounded-full font-semibold ${
-                        // Badge de comptage : petite taille, padding, arrondi, gras
-                        isSelected // Condition pour le style du badge
-                          ? "bg-purple-100 text-purple-800" // Si sélectionné : fond violet clair, texte violet foncé
-                          : "neu-button theme-text-muted" // Si non sélectionné : style neumorphique et couleur atténuée
+                        isSelected
+                          ? "bg-purple-100 text-purple-800"
+                          : "neu-button theme-text-muted"
                       }`}
                     >
-                      {folder.count} {/* Nombre d'éléments dans le dossier */}
+                      {folder.count}
                     </span>
                   )}
                 </button>
@@ -101,45 +113,58 @@ export default function SideBar({
             );
           })}
         </nav>
-        {/* Séparateur visuel */}
         <div className="my-6">
-          {" "}
-          {/* Conteneur avec marge verticale */}
-          <div className="h-px bg-gradient-to-r from-transparent via-gray-600 to-transparent"></div>{" "}
-          {/* Ligne de séparation avec dégradé horizontal */}
+          <div className="h-px bg-gradient-to-r from-transparent via-gray-600 to-transparent"></div>
         </div>
-        {/* Section navigation additionnelle */}
         <nav className="space-y-2">
-          {" "}
-          {/* Navigation avec espacement vertical */}
-          <motion.div // Conteneur animé pour l'élément "Starred"
-            initial={{ x: -20, opacity: 0 }} // État initial : décalé à gauche, invisible
-            animate={{ x: 0, opacity: 1 }} // État animé : position normale, visible
-            transition={{ delay: 0.3 }} // Délai de 0.3 seconde
-            whileHover={{ scale: 1.02 }} // Légère augmentation de taille au survol
-            whileTap={{ scale: 0.98 }} // Légère diminution de taille au clic
+          <motion.div
+            initial={{ x: -20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            <button className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium theme-text-primary neu-button rounded-xl transition-all duration-200 hover:theme-text-primary">
-              {" "}
-              {/* Bouton avec styles complets */}
-              <Star className="w-5 h-5 theme-text-muted" />{" "}
-              {/* Icône étoile avec couleur atténuée */}
-              <span>Starred</span> {/* Texte "Starred" */}
+            <button
+              onClick={() => onSelectFolder("starred")}
+              className={`w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
+                selectedFolder === "starred"
+                  ? "neu-selected theme-accent"
+                  : "neu-button theme-text-primary hover:theme-text-primary"
+              }`}
+            >
+              <Star
+                className={`w-5 h-5 ${
+                  selectedFolder === "starred"
+                    ? "theme-accent"
+                    : "theme-text-muted"
+                }`}
+              />
+              <span>Starred</span>
             </button>
           </motion.div>
-          <motion.div // Conteneur animé pour l'élément "Archive"
-            initial={{ x: -20, opacity: 0 }} // État initial : décalé à gauche, invisible
-            animate={{ x: 0, opacity: 1 }} // État animé : position normale, visible
-            transition={{ delay: 0.35 }} // Délai de 0.35 seconde
-            whileHover={{ scale: 1.02 }} // Légère augmentation de taille au survol
-            whileTap={{ scale: 0.98 }} // Légère diminution de taille au clic
+          <motion.div
+            initial={{ x: -20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: 0.35 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            <button className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium theme-text-primary neu-button rounded-xl transition-all duration-200 hover:theme-text-primary">
-              {" "}
-              {/* Bouton avec styles complets */}
-              <Archive className="w-5 h-5 theme-text-muted" />{" "}
-              {/* Icône archive avec couleur atténuée */}
-              <span>Archive</span> {/* Texte "Archive" */}
+            <button
+              onClick={() => onSelectFolder("archive")}
+              className={`w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
+                selectedFolder === "archive"
+                  ? "neu-selected theme-accent"
+                  : "neu-button theme-text-primary hover:theme-text-primary"
+              }`}
+            >
+              <Archive
+                className={`w-5 h-5 ${
+                  selectedFolder === "archive"
+                    ? "theme-accent"
+                    : "theme-text-muted"
+                }`}
+              />
+              <span>Archive</span>
             </button>
           </motion.div>
         </nav>

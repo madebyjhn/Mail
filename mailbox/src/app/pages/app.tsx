@@ -52,7 +52,7 @@ export default function App() {
 
   useEffect(() => {
     if (session) {
-      setLoading(true);
+      //setLoading(true);
       fetch(`/api/server?maxResults=${maxResults}`)
         .then((res) => res.json())
         .then((data) => {
@@ -77,7 +77,12 @@ export default function App() {
         <div className="flex h-screen p-4 gap-4">
           {/*SideBar*/}
           <AnimatePresence>
-            <motion.div className="w-80 flex-shrink-0">
+            <motion.div
+              className="w-80 flex-shrink-0"
+              initial={{ opacity: 0, x: -320 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.47, ease: "easeInOut" }}
+            >
               <div className="neu-flat rounded-3xl h-full overflow-hidden">
                 <SideBar
                   selectedFolder={selectedFolder}
